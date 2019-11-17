@@ -1,0 +1,143 @@
+from tkinter import *
+import mysql.connector
+from tkinter import messagebox
+from system_codes import set_reminder_file as sr
+from system_codes import view_reminders as vr
+from system_codes import delet_reminder as dr
+from system_codes import modify_reminder as mr
+import _datetime as dt
+import time
+
+
+#registration successfull...........................
+def register_success():
+    screen_register.destroy()
+    mydb = mysql.connector.connect(host="localhost", user="root", passwd="1234", database="reminder_application_database")
+    mycursor = mydb.cursor()
+    username1=username.get()
+    password1=password.get()
+    query = "insert into login_info values(" + "'" + username1 + "'" + "," + "'" + password1 + "'" + ")"
+    mycursor.execute(query)
+    mydb.commit()
+    messagebox.showinfo("Registered","Username: "+username1+"\n"+"password :"+password1+
+                        "\n"+"successfully registerded\n")
+
+
+
+
+#register screen for new user .....................................................
+def register():
+    global screen_register
+    screen_register = Toplevel()
+    screen_register.title("Register")
+    screen_register.geometry("400x400")
+    global username
+    global password
+    username= StringVar()
+    password= StringVar()
+
+    #global username_for_registration
+    #global password_for_registration
+    Label(screen_register, text="Username :").pack()
+    Entry(screen_register, textvariable=username).pack()
+    Label(screen_register, text="Password :").pack()
+    Entry(screen_register, textvariable=password).pack()
+    Label(screen_register, text="").pack()
+    Button(screen_register, text="Register", width=10, height=2, command=register_success).pack()
+
+#authentication for username and password..........
+def login_check():
+    mydb = mysql.connector.connect(host="localhost", user="root", passwd="1234",
+                                   database="reminder_application_database")
+    mycursor = mydb.cursor()
+    username2 = username_verify.get()
+    password2 = password_verify.get()
+    mycursor.execute("select username from login_info")
+    result=mycursor.fetchall()
+    for i in result:
+        if username2 in i:
+            mycursor.execute("select password from login_info where username=" + "'" + username2 + "'")
+            password_correct= mycursor.fetchone()
+            print(password_correct)
+            print(password2)
+            if password2 in password_correct:
+                logged_in()
+                screen_main.destroy()
+
+            else:
+                messagebox.showerror("ERROR","password wrong")
+                break
+    messagebox.showerror("ERROR", "invalid")
+
+
+
+    mycursor.execute("select* from login_info")
+    result = mycursor.fetchall()
+    for i in result:
+        print(i)
+
+
+
+#if username and password is correct ,this will open
+def logged_in():
+    screen_login.destroy()
+    screen_main.destroy()
+    global screen_loggedin
+    screen_loggedin = Tk()
+    screen_loggedin.title("Welcome")
+    screen_loggedin.geometry("1000x600")
+    current_datetime=dt.datetime.today()
+    Label(screen_loggedin, text="Welcome to reminder app",font=("Arial",50,"bold italic")).pack()
+
+    Label(screen_loggedin, text="").pack()
+    Label(screen_loggedin, text="Today's Date :"+str(current_datetime.date()),font=("Arial",20,"bold italic")).pack()
+    Label(screen_loggedin, text="").pack()
+    Label(screen_loggedin, text="TIME :" + str(current_datetime.time()),font=("Arial",20,"bold italic")).pack()
+    Label(screen_loggedin, text="").pack()
+    Button(screen_loggedin,text="SET REMINDER",width=15, height=2,command=sr.set_reminder).pack()
+    Label(screen_loggedin, text="").pack()
+    Button(screen_loggedin, text="MODIFY REMINDERS", width=15, height=2, command=mr.modify_deatils_screen).pack()
+    Label(screen_loggedin, text="").pack()
+    Button(screen_loggedin, text="VIEW REMINDERS", width=15, height=2,command=vr.view_reminder).pack()
+    Label(screen_loggedin, text="").pack()
+    Button(screen_loggedin, text="DELETE REMINDERS", width=15, height=2,command=dr.delete_reminder).pack()
+
+    #screen_loggedin.mainloop()
+
+
+
+
+#login screen  with user name and password ...................................................
+def login():
+    global screen_login
+    screen_login = Toplevel()
+    screen_login.title("login page")
+    screen_login.geometry("400x400")
+    global username_verify
+    global password_verify
+    username_verify = StringVar()
+    password_verify = StringVar()
+    Label(screen_login, text="Username :").pack()
+    Entry(screen_login, textvariable=username_verify).pack()
+    Label(screen_login, text="Password :").pack()
+    Entry(screen_login, textvariable=password_verify).pack()
+    Label(screen_login, text="").pack()
+    Button(screen_login, text="Login", width=10, height=2, command=login_check).pack()
+
+#### main screen  with login  and register button..................................................
+def main_screen():
+    global screen_main
+    screen_main = Tk()
+    screen_main.title("Reminder")
+    screen_main.geometry("500x480")
+    Label(screen_main, text="please choose ..").pack()
+    Button(screen_main, text="login", width=30, height=2, command=login).pack()
+    Label(screen_main, text="").pack()
+    Button(screen_main, text="Register", width=30, height=2, command=register).pack()
+    screen_main.mainloop()
+
+
+#logged_in()
+main_screen()
+
+
